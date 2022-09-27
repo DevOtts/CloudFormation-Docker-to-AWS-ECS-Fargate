@@ -1,0 +1,29 @@
+AWSTemplateFormatVersion: 2010-09-09
+Parameters:
+  AWSAccountId:
+    Type: String
+    Description: AWS Account ID
+  AWSECRAdminUser:
+    Type: String
+    Description: Admin User who can push ECR images
+  AWSECRRepoName:
+    Type: String
+    Description: ECR Repository Name
+  PrefixName:
+    Type: String
+    Description: Prefix of all of the resources
+
+Resources:
+  SimpleRepository:
+    Type: 'AWS::ECR::Repository'
+    Properties:
+      RepositoryName: !Join ["-", [!Ref PrefixName, "repo"]]
+    
+Outputs:
+  SimpleECRArn:
+    Description: Your Simple ECR Repository ARN
+    Value: !Join 
+      - ''
+      - - !GetAtt 
+          - SimpleRepository
+          - Arn  

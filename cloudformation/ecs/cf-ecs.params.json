@@ -1,0 +1,15 @@
+[
+  {
+    "ParameterKey": "AWSAccountId",
+    "ParameterValue": "430525806551"
+  },  
+  {
+      "ParameterKey": "PrefixName",
+      "ParameterValue": "simple-cf"
+    },
+    {
+      "ParameterKey": "SubnetID",
+      "ParameterValue": "subnet-08c82d104640b7c36"
+      
+    }
+  ]

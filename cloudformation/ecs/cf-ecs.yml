@@ -1,0 +1,81 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Parameters:
+  AWSAccountId:
+    Type: String
+    Description: AWS Account ID
+  SubnetID:
+    Type: String
+  PrefixName:
+    Type: String
+Resources:
+  Cluster:
+    Type: AWS::ECS::Cluster
+    Properties:
+      ClusterName: !Join ["-", [!Ref PrefixName, "cluster"]]      
+  LogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Join ["-", [!Ref PrefixName, "log-group"]]
+  ExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Join ["-", [!Ref PrefixName, "role"]]
+      AssumeRolePolicyDocument:
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: ecs-tasks.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy
+  ContainerSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupName: ContainerSecurityGroup
+      GroupDescription: Security group for dotnet6  container
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 5000
+          ToPort: 8881
+          CidrIp: 0.0.0.0/0
+  TaskDefinition:
+    Type: AWS::ECS::TaskDefinition
+    Properties:
+      Family: !Join ["-", [!Ref PrefixName, "task"]]    
+      Cpu: 256
+      Memory: 512
+      NetworkMode: awsvpc
+      ExecutionRoleArn: !Ref ExecutionRole
+      ContainerDefinitions:
+        - Name: simple-cf-container
+          #Image: 430525806551.dkr.ecr.us-east-1.amazonaws.com/simple-cf-repo:latest
+          Image: !Join ["", [!Ref AWSAccountId, ".dkr.ecr.",!Ref 'AWS::Region','.amazonaws.com/',!Ref PrefixName, "-","repo"]]
+          PortMappings:
+            - ContainerPort: 5000
+            # due a bug in CDK we can't do this map, so we will have to use same port 5000
+            # - HostPort: 8881 
+            # - Protocol: tcp
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-region: !Ref AWS::Region
+              awslogs-group: !Ref LogGroup
+              awslogs-stream-prefix: ecs
+      RequiresCompatibilities:
+        - EC2
+        - FARGATE
+  Service:
+    Type: AWS::ECS::Service
+    Properties:
+      ServiceName: !Join ["-", [!Ref PrefixName, "service"]] 
+      Cluster: !Ref Cluster
+      TaskDefinition: !Ref TaskDefinition
+      DesiredCount: 1
+      LaunchType: FARGATE
+      NetworkConfiguration:
+        AwsvpcConfiguration:
+          AssignPublicIp: ENABLED
+          Subnets:
+            - !Ref SubnetID
+          SecurityGroups:
+            - !GetAtt ContainerSecurityGroup.GroupId

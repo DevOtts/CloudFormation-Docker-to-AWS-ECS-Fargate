@@ -1,0 +1,18 @@
+[
+    {
+      "ParameterKey": "AWSAccountId",
+      "ParameterValue": "430525806551"
+    },
+    {
+      "ParameterKey": "AWSECRAdminUser",
+      "ParameterValue": "playground"
+    },
+    {
+      "ParameterKey": "PrefixName",
+      "ParameterValue": "simple-cf"
+    },
+    {
+      "ParameterKey": "AWSECRRepoName",
+      "ParameterValue": "simple-cf-repo"
+    }
+  ]
